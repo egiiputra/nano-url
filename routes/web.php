@@ -6,7 +6,9 @@ use Inertia\Inertia;
 use App\Http\Controllers\LinkController;
 
 Route::get('/', function () {
-    return Inertia::render('home');
+    return Inertia::render('home', [
+        'app_url' => env('APP_URL')
+    ]);
 })->name('home');
 
 Route::get('/welcome', function () {
