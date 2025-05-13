@@ -5,21 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormEventHandler, useEffect } from 'react';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { UserMenuContent } from '@/components/user-menu-content';
 import { UserInfo } from '@/components/user-info';
 import { ChevronsUpDown } from 'lucide-react';
-import { NavUser } from '@/components/nav-user';
 import {
     Select,
     SelectContent,
     SelectGroup,
     SelectItem,
-    SelectLabel,
-    SelectScrollDownButton,
-    SelectScrollUpButton,
-    SelectSeparator,
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
@@ -43,9 +37,7 @@ export default function Home({ app_url }: Props) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('link.create'), {
-            // onFinish: () => reset('long_url', 'short_url'),
-        });
+        post(route('link.create'));
     };
 
     useEffect(() => {
@@ -103,6 +95,7 @@ export default function Home({ app_url }: Props) {
                     </div>
                     <form className="flex flex-2 flex-col gap-6" onSubmit={submit}>
                         <div className="grid gap-6">
+                            <input name='user_id' value={auth.user.id} />
                             <Input 
                                 type='text'
                                 autoFocus
@@ -131,21 +124,23 @@ export default function Home({ app_url }: Props) {
                                 />
                             </div>
                             <small className="text-sm font-medium leading-none text-red-700">{errors.short_url}</small>
-                            <div className="flex items-center space-x-2">
-                                <Label htmlFor="short_url">Expired in{' '}</Label>
-                                <Select defaultValue="10">
-                                    <SelectTrigger className="w-[180px]">
-                                        <SelectValue placeholder="Select a fruit" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectGroup>
-                                            {[10, 30, 60].map((val) => 
-                                                <SelectItem value={val.toString()}>{val} days</SelectItem>
-                                            )}
-                                        </SelectGroup>
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            {auth.user && (
+                                <div className="flex items-center space-x-2">
+                                    <Label htmlFor="short_url">Expired in{' '}</Label>
+                                    <Select name="expired" defaultValue="10">
+                                        <SelectTrigger className="w-[180px]">
+                                            <SelectValue placeholder="Select a fruit" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectGroup>
+                                                {[10, 30, 60].map((val) => 
+                                                    <SelectItem value={val.toString()}>{val} days</SelectItem>
+                                                )}
+                                            </SelectGroup>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
                             <Button type="submit" className="mt-2 w-full" tabIndex={3} disabled={processing}>
                                 {/* {processing && <LoaderCircle className="h-4 w-4 animate-spin" />} */}
                                 Create short URL
