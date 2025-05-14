@@ -25,6 +25,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
+require __DIR__.'/api.php';
 
 Route::post('/create-nano-url', [LinkController::class, 'store'])->name('link.create');
 Route::get('/{short_url}', [LinkController::class, 'redirect'])->name('link.redirect');
