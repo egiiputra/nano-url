@@ -14,14 +14,35 @@ class LinkController extends Controller
 {
     public function redirect($short_url) 
     {
-        $long_url = DB::scalar('select long_url from links where short_url = ?', [$short_url]);
+        $res = DB::select('select id, long_url from links where short_url = ?', [$short_url]);
         
-        if (is_null($long_url)) {
+        if (count($res) == 0) {
             return Inertia::render('notfound');
+        }
+        // dd($res);
+
+        // Check whether counter link for today already exists or not
+        $today_date = date('Y-m-d');
+        $analytics = DB::select(
+            'select id, counter from analytics where link_id=? and date=?', 
+            [$res[0]->id, $today_date]
+        );
+
+        if (count($analytics) == 0) { 
+            DB::table('analytics')->insert([
+                'link_id' => $res[0]->id,
+                'date' => $today_date,
+                'counter' => 1
+            ]);
+        } else {
+            DB::table('analytics')
+                ->where('id', $analytics[0]->id)
+                ->increment('counter');
         }
 
         // TODO: Add counter in current data for this short url
-        return redirect($long_url);
+
+        return redirect($res[0]->long_url);
     }
 
     public function store(Request $request) 
