@@ -20,8 +20,10 @@ import {
 
 
 type createShortUrlForm = {
+    user_id: number | null;
     long_url: string;
     short_url: string;
+    expired: number;
 };
 
 type Props = {
@@ -31,18 +33,16 @@ type Props = {
 export default function Home({ app_url }: Props) {
     const { auth } = usePage<SharedData>().props;
     const { data, setData, post, processing, errors, reset } = useForm<Required<createShortUrlForm>>({
+        user_id: auth.user ? auth.user.id:null,
         long_url: '',
         short_url: '',
+        expired: 10,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('link.create'));
     };
-
-    useEffect(() => {
-        console.log(auth)
-    }, [auth])
 
     return (
         <>
@@ -95,7 +95,7 @@ export default function Home({ app_url }: Props) {
                     </div>
                     <form className="flex flex-2 flex-col gap-6" onSubmit={submit}>
                         <div className="grid gap-6">
-                            <input name='user_id' value={auth.user.id} />
+                            {/* <input name='user_id' value={(data.user_id ?? '').toString()} type='hidden'/> */}
                             <Input 
                                 type='text'
                                 autoFocus
@@ -127,7 +127,11 @@ export default function Home({ app_url }: Props) {
                             {auth.user && (
                                 <div className="flex items-center space-x-2">
                                     <Label htmlFor="short_url">Expired in{' '}</Label>
-                                    <Select name="expired" defaultValue="10">
+                                    <Select 
+                                        name="expired" 
+                                        defaultValue="10" 
+                                        onValueChange={(val) => setData('expired', parseInt(val))}
+                                    >
                                         <SelectTrigger className="w-[180px]">
                                             <SelectValue placeholder="Select a fruit" />
                                         </SelectTrigger>
