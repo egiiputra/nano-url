@@ -1,3 +1,5 @@
+import React from 'react';
+import { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
@@ -17,6 +19,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select'
+import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationLink,
+    PaginationNext,
+    PaginationPrevious,
+} from "@/components/ui/pagination"
 
 
 type createShortUrlForm = {
@@ -31,6 +42,10 @@ type Props = {
 }
 
 export default function Home({ app_url }: Props) {
+    const params = new URLSearchParams(window.location.search)
+    const [page, setPage] = useState(parseInt(params.get('page') ?? '1'))
+    const [urlData, setUrlData] = useState([])
+
     const { auth } = usePage<SharedData>().props;
     const { data, setData, post, processing, errors, reset } = useForm<Required<createShortUrlForm>>({
         user_id: auth.user ? auth.user.id:null,
@@ -44,54 +59,173 @@ export default function Home({ app_url }: Props) {
         post(route('link.create'));
     };
 
+    let [countPages, setCountPages] = useState(0);
+    useEffect(() => {
+        fetch('/api/links/count')
+            .then((res) => res.json())
+            .then((data) => {
+                setCountPages(data.data)
+            })
+
+        fetch(`api/links?page=${page}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setUrlData(data)
+            })
+    }, [])
+
+    useEffect(() => {
+        console.log('location ', window.location.search)
+        const params = new URLSearchParams(window.location.search);
+
+        params.set('page', page.toString())
+        console.log('params ', params.toString())
+
+        console.log(page);
+        console.log(location.href)
+        // console.log('new url ', `${location.href}?${params.toString()}`)
+        window.history.pushState(null, '', `?${params.toString()}`);
+        fetch(`api/links?page=${page}`)
+            .then((res) => res.json())
+            .then((data) => {
+                setData(data)
+            })
+    }, [page])
+
+    // TODO: Add Toast notif when creating success
     return (
         <>
-            <Head title="Home"/>
-            <header className="mb-6 w-full max-w-[335px] text-sm not-has-[nav]:hidden lg:max-w-4xl">
-                <nav className="flex items-center justify-end gap-4">
-                {auth.user ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger>
-                            <UserInfo user={auth.user} />
-                            <ChevronsUpDown className="ml-auto size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                            align="end"
-                            side='bottom'
+        <Head title="Home"/>
+            <header className="w-full text-sm shadow-lg">
+                <div className="flex flex-row justify-between items-center lg:w-8/10 h-20 mx-auto outline ">
+                    <div className="text-xl text-black">Nano URL</div>
+                    <nav className="flex items-center justify-end gap-4">
+                    {auth.user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger className="flex flex-row gap-4 items-center">
+                                <UserInfo user={auth.user} />
+                                <ChevronsUpDown className="ml-auto size-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                                align="end"
+                                side='bottom'
+                            >
+                            <UserMenuContent user={auth.user} />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ):(
+                        <>
+                        <Link
+                            href={route('login')}
+                            className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
                         >
-                        <UserMenuContent user={auth.user} />
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ):(
-                    <>
-                    <Link
-                        href={route('login')}
-                        className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                    >
-                        Log in
-                    </Link>
-                    <Link
-                        href={route('register')}
-                        className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                    >
-                        Register
-                    </Link>
-                    </>
-                )}
-                </nav>
+                            Log in
+                        </Link>
+                        <Link
+                            href={route('register')}
+                            className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
+                        >
+                            Register
+                        </Link>
+                        </>
+                    )}
+                    </nav>
+                </div>
+
             </header>
-            <div className="flex h-svh flex-col items-center justify-center bg-muted">
-                <div className="w-full  bg-white flex flex-row lg:w-8/10 gap-6 space-between">
+            <div className="flex h-svh flex-col items-center justify-center bg-sidebar">
+                <div className="w-full bg-white flex flex-row lg:w-8/10 gap-6 space-between shadow-lg rounded-xl">
                     <div className="flex flex-3 flex-col gap-6">
-                        <h1 className="text-black-900">Create short URL as guest</h1>
-                        <ul>
-                            <li>Expired in 10 day</li>
-                            <li>No analytic feature</li>
-                            <li>No QR code feature</li>
-                            <li>No edit feature</li>
-                        </ul>
-                        <p>Login to get full feature and expired short URL up to 60 days</p>
+                        {auth.user ? (
+                            <>
+                            <h1 className="text-black-900">Your short URL</h1>
+                            <table>
+                                <tbody>
+                                    {urlData.map(url =>
+                                        <tr>
+                                            <td>{url.short_url}</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                            <Pagination>
+                                <PaginationContent>
+                                    <PaginationItem>
+                                        <PaginationPrevious 
+                                            href="#" 
+                                            onClick={() => {
+                                                if (page > 1) {
+                                                    setPage(page - 1)
+                                                }
+                                            }}
+                                        />
+                                    </PaginationItem>
+                                    <PaginationItem>
+                                        <PaginationLink 
+                                            href="#" 
+                                            isActive={page==1}
+                                            onClick={() => setPage(1)}
+                                        >
+                                            1
+                                        </PaginationLink>
+                                    </PaginationItem>
+                                    {(page > 2) && (
+                                        <PaginationItem>
+                                            <PaginationEllipsis />
+                                        </PaginationItem>
+                                    )}
+                                    {(page > 1 && page < countPages) && (
+                                        <PaginationItem>
+                                            <PaginationLink 
+                                                href="#" 
+                                                isActive={true}
+                                            >
+                                                {page}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    )}
+                                    {(page < (countPages - 1)) && (
+                                        <PaginationItem>
+                                            <PaginationEllipsis />
+                                        </PaginationItem>
+                                    )}
+                                    {(countPages > 1) && (
+                                        <PaginationItem>
+                                            <PaginationLink 
+                                                href="#" 
+                                                isActive={page==countPages}
+                                                onClick={() => setPage(countPages)}
+                                            >
+                                                {countPages}
+                                            </PaginationLink>
+                                        </PaginationItem>
+                                    )}
+                                    <PaginationItem>
+                                        <PaginationNext 
+                                            href="#" 
+                                            onClick={() => {
+                                                if (page < countPages) {
+                                                    setPage(page + 1)
+                                                }
+                                            }}
+                                        />
+                                    </PaginationItem>
+                                </PaginationContent>
+                            </Pagination>
+                            </>
+                        ):(
+                            <>
+                            <h1 className="text-black-900">Create short URL as guest</h1>
+                            <ul>
+                                <li>Expired in 10 day</li>
+                                <li>No analytic feature</li>
+                                <li>No QR code feature</li>
+                                <li>No edit feature</li>
+                            </ul>
+                            <p>Login to get full feature and expired short URL up to 60 days</p>
+                            </>
+                        )}
                     </div>
                     <form className="flex flex-2 flex-col gap-6" onSubmit={submit}>
                         <div className="grid gap-6">
@@ -154,5 +288,5 @@ export default function Home({ app_url }: Props) {
                 </div>
             </div>
         </>
-    );
+    )
 }
