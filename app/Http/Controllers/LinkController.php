@@ -14,12 +14,12 @@ class LinkController extends Controller
 {
     public function redirect($short_url) 
     {
+        // FIXME: specifying for short url that not expired
         $res = DB::select('select id, long_url from links where short_url = ?', [$short_url]);
         
         if (count($res) == 0) {
             return Inertia::render('notfound');
         }
-        // dd($res);
 
         // Check whether counter link for today already exists or not
         $today_date = date('Y-m-d');
@@ -40,8 +40,6 @@ class LinkController extends Controller
                 ->increment('counter');
         }
 
-        // TODO: Add counter in current data for this short url
-
         return redirect($res[0]->long_url);
     }
 
@@ -56,7 +54,8 @@ class LinkController extends Controller
                 'string',
                 'max:100',
                 function (string $attribute, mixed $value, Closure $fail) {
-                    $url = DB::scalar("select short_url from links where short_url = ?", [$value]);
+                    // specifying for short url that not expired yet
+                    $url = DB::scalar("select short_url from links where short_url = ? where expired_at > > current_timestamp(0)", [$value]);
                     if (!is_null($url)) {
                         $fail("Short url is already used");
                     }
@@ -73,11 +72,25 @@ class LinkController extends Controller
             new \DateInterval('P' . ($request->expired ?? 10) . 'D')
         )->format("Y-m-d H:i:s");
 
+        // TODO: insert if short_url is not already used
+        $id = DB::scalar("select id from links where short_url = ? ", [$value]);
+        if (!is_null($id)) {
+            // update if short_url is already used
+            DB::update('update links set user_id = ?, long_url = ?, expired_at = ? where id = ?', [
+                $request->user_id,
+                $request->long_url,
+                $expiredDate,
+                $id,
+            ]);
+
+        }
+        
         $res = DB::insert('insert into links (user_id, short_url, long_url, expired_at) values (?, ?, ?, ?)', [
             $request->user_id,
             $request->short_url,
             $request->long_url,
             $expiredDate,
         ]);
+
     }
 }
