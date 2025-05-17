@@ -1,16 +1,12 @@
-import React from 'react';
+import Header from '@/components/header';
 import { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FormEventHandler, useEffect } from 'react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { UserMenuContent } from '@/components/user-menu-content';
-import { UserInfo } from '@/components/user-info';
-import { ChevronsUpDown } from 'lucide-react';
 import {
     Select,
     SelectContent,
@@ -97,43 +93,7 @@ export default function Home({ app_url }: Props) {
     return (
         <>
         <Head title="Home"/>
-        <header className="w-full text-sm shadow-lg">
-            <div className="flex flex-row justify-between items-center lg:w-8/10 h-20 mx-auto">
-                <div className="text-2xl font-semibold text-gray-800">Nano URL</div>
-                <nav className="flex items-center justify-end gap-4">
-                {auth.user ? (
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className="flex flex-row gap-4 items-center">
-                            <UserInfo user={auth.user} />
-                            <ChevronsUpDown className="ml-auto size-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                            align="end"
-                            side='bottom'
-                        >
-                        <UserMenuContent user={auth.user} />
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ):(
-                    <>
-                    <Link
-                        href={route('login')}
-                        className="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
-                    >
-                        Log in
-                    </Link>
-                    <Link
-                        href={route('register')}
-                        className="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                    >
-                        Register
-                    </Link>
-                    </>
-                )}
-                </nav>
-            </div>
-        </header>
+        <Header auth={auth}/>
         <div className="flex flex-col items-center justify-center bg-sidebar py-10">
             <div className="w-full bg-white flex flex-row lg:w-8/10 gap-6 space-between shadow-lg rounded-xl p-10">
                 <div className="flex flex-3 flex-col gap-6">
