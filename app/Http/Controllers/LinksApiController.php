@@ -31,6 +31,18 @@ class LinksApiController extends Controller
     }
 
     /**
+     * Display visitor of short url.
+     */
+    public function analytic($short_url)
+    {
+        $data = DB::select('SELECT date, counter
+            FROM analytics INNER JOIN links 
+            ON analytics.link_id=links.id where links.short_url=?', [$short_url]);
+
+        return response()->json($data);
+    }
+
+    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
