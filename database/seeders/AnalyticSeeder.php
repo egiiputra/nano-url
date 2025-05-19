@@ -20,7 +20,7 @@ class AnalyticSeeder extends Seeder
 
         $analyticDates = [];
         for ($i = 0; $i < 30; $i++) {
-            $analyticDates[] = date_add($createdDate, new \DateInterval("P{$i}D"))->format('Y-m-d');
+            $analyticDates[] = date_add($createdDate, new \DateInterval("P1D"))->format('Y-m-d');
         }
 
         $data = [];
